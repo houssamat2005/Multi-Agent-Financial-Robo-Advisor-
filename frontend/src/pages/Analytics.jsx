@@ -101,7 +101,7 @@ export default function Analytics() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Visualisations & Analyses Avancées</h1>
-          <p className="text-muted-foreground mt-1">Graphes exportables pour rapport académique / technique</p>
+          <p className="text-muted-foreground mt-1">Indicateurs quantitatifs de risque, backtesting et télémétrie du système</p>
         </div>
       </div>
 

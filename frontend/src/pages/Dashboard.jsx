@@ -33,7 +33,7 @@ export default function Dashboard() {
 
   // Chat
   const [chatMessages, setChatMessages] = useState([
-    { role: 'assistant', content: '👋 Bonjour ! Je suis votre conseiller financier IA. Importez votre portefeuille CSV et posez-moi vos questions !' }
+    { role: 'assistant', content: 'Bonjour. Le module d\'analyse financière est initialisé. Importez un portefeuille CSV ou posez vos questions sur la gestion d\'actifs.' }
   ]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
@@ -82,14 +82,14 @@ export default function Dashboard() {
   const handleImport = async () => {
     if (!importFile) return setImportStatus({ type: 'error', msg: 'Veuillez sélectionner un fichier CSV.' });
     setImporting(true);
-    setImportStatus({ type: 'info', msg: '⏳ Analyse en cours...' });
+    setImportStatus({ type: 'info', msg: 'Traitement du fichier en cours...' });
     try {
       const name = importName.trim() || importFile.name.replace('.csv', '');
       const fd = new FormData();
       fd.append('file', importFile);
       fd.append('name', name);
       const res = await axios.post('/api/portfolio/import', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-      setImportStatus({ type: 'success', msg: `✅ Portefeuille "${res.data.name}" importé !` });
+      setImportStatus({ type: 'success', msg: `Portefeuille "${res.data.name}" importé avec succès.` });
 
       const portsRes = await axios.get('/api/portfolio/');
       setPortfolios(portsRes.data);
@@ -97,11 +97,11 @@ export default function Dashboard() {
       if (newPort) await loadPortfolioDetails(newPort.id);
 
       // Welcome message in chat
-      setChatMessages([{ role: 'assistant', content: `✅ Portefeuille **"${res.data.name}"** importé avec succès ! Je suis prêt à l'analyser. Que souhaitez-vous savoir ?` }]);
+      setChatMessages([{ role: 'assistant', content: `Portefeuille "${res.data.name}" chargé avec succès (${res.data.holdings_count || 'actifs'} positions). Vous pouvez lancer une analyse ou interroger le modèle.` }]);
       setTimeout(() => { setShowImportModal(false); setImportStatus(null); setImportFile(null); setImportName(''); }, 1500);
     } catch (err) {
-      const msg = err.response?.data?.detail || 'Erreur. Vérifiez le format du CSV.';
-      setImportStatus({ type: 'error', msg: `❌ ${msg}` });
+      const msg = err.response?.data?.detail || 'Erreur lors du traitement du fichier CSV.';
+      setImportStatus({ type: 'error', msg: msg });
     } finally {
       setImporting(false);
     }
@@ -119,14 +119,14 @@ export default function Dashboard() {
 
     try {
       if (!activePortfolio) {
-        setChatMessages(prev => [...prev, { role: 'assistant', content: '⚠️ Veuillez d\'abord importer un portefeuille CSV pour que je puisse l\'analyser.' }]);
+        setChatMessages(prev => [...prev, { role: 'assistant', content: 'Veuillez sélectionner ou importer un portefeuille pour activer l\'analyse contextuelle.' }]);
         return;
       }
       const historyToSend = chatMessages.filter(m => m.role !== 'system').slice(-10);
       const res = await axios.post(`/api/chat/${activePortfolio}`, { message: msg, history: historyToSend });
       setChatMessages(prev => [...prev, { role: 'assistant', content: res.data.reply }]);
     } catch (err) {
-      setChatMessages(prev => [...prev, { role: 'assistant', content: `❌ Erreur: ${err.response?.data?.detail || 'Service IA indisponible.'}` }]);
+      setChatMessages(prev => [...prev, { role: 'assistant', content: `Erreur : ${err.response?.data?.detail || 'Service d\'analyse temporairement indisponible.'}` }]);
     } finally {
       setChatLoading(false);
     }
@@ -277,8 +277,8 @@ export default function Dashboard() {
               <BrainCircuit size={18} />
             </div>
             <div>
-              <h3 className="font-bold text-sm">Conseiller IA</h3>
-              <p className="text-xs text-muted-foreground">Expert financier alimenté par LLaMA 3 70B</p>
+              <h3 className="font-bold text-sm">Assistant d'Analyse</h3>
+              <p className="text-xs text-muted-foreground">Conseil et synthèse de portefeuille</p>
             </div>
             <div className={`ml-auto w-2 h-2 rounded-full ${chatLoading ? 'bg-yellow-400 animate-pulse' : 'bg-green-500'}`}></div>
           </div>
@@ -363,10 +363,10 @@ export default function Dashboard() {
             >
               <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={e => setImportFile(e.target.files[0] || null)} />
               {importFile ? (
-                <div className="text-green-700">
-                  <div className="text-3xl mb-2">📄</div>
-                  <p className="font-semibold">{importFile.name}</p>
-                  <p className="text-sm mt-1">{(importFile.size / 1024).toFixed(1)} KB — Prêt à importer</p>
+                <div className="text-primary">
+                  <FileText size={36} className="mx-auto mb-2 text-primary" />
+                  <p className="font-semibold text-foreground">{importFile.name}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{(importFile.size / 1024).toFixed(1)} KB — Fichier prêt pour l'ingestion</p>
                 </div>
               ) : (
                 <div className="text-muted-foreground">

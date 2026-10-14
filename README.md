@@ -1,94 +1,101 @@
-# 🤖 Robo-Advisor Financier Intelligent
+# Robo-Advisor Multi-Agents : Système d'Aide à la Décision Financière
 
-> Système multi-agents de conseil en investissement basé sur l'IA — Projet de Fin d'Année (PFA)
+Projet de Fin d'Année (PFA) portant sur la conception et l'implémentation d'une plateforme distribuée d'optimisation de portefeuille d'actifs financiers, combinant calcul quantitatif, analyse de sentiment et raisonnement multi-agents.
 
-[![CI](https://github.com/your-org/robo-advisor/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/robo-advisor/actions)
+---
 
-## Vue d'ensemble
+## 1. Présentation du projet
 
-Le Robo-Advisor automatise entièrement le cycle **Collecter → Analyser → Recommander → Rééquilibrer** en combinant :
-- **Optimisation quantitative** (Markowitz, RSI, SHAP)
-- **Analyse de sentiment** (FinBERT sur actualités financières)
-- **Graphe de connaissances** (Neo4j : chaînes d'approvisionnement, ESG)
-- **LLM** (Mistral 7B via Groq) pour des recommandations en langage naturel
+La gestion moderne de portefeuille requiert la synthèse simultanée de données quantitatives (historiques de cours, volatilité, corrélations) et qualitatives (actualités financières, sentiment de marché, critères ESG). 
 
-## Prérequis
+Ce projet implémente une architecture multi-agents orchestrée avec **LangGraph**, permettant d'automatiser le cycle d'analyse et de rééquilibrage de portefeuille :
 
-- Docker Desktop ≥ 4.x
-- Python 3.11+
-- Node.js 20+
-- Git
+1. **Agent Quantitatif** : Calcul de la frontière efficiente selon la théorie moderne de portefeuille de Markowitz, maximisation du ratio de Sharpe, calcul des indicateurs techniques (RSI) et explicabilité via valeurs SHAP.
+2. **Agent Analyste** : Ingestion de flux d'actualités financières, scoring de polarité via le modèle NLP **FinBERT**, extraction de relations sectorielles et critères ESG depuis une base graphe **Neo4j**.
+3. **Agent Conseiller (LLM)** : Synthèse des signaux quantitatifs et qualitatifs, génération de recommandations argumentées et dialogue interactif avec l'investisseur.
 
-## Démarrage rapide (< 10 minutes)
+---
 
-```bash
-# 1. Cloner le dépôt
-git clone https://github.com/your-org/robo-advisor.git
-cd robo-advisor
+## 2. Architecture technique
 
-# 2. Configurer les secrets
-cp .env.example .env
-# Éditer .env et renseigner : POSTGRES_PASSWORD, GROQ_API_KEY, JWT_SECRET_KEY, NEWS_API_KEY, NEO4J_PASSWORD, LANGCHAIN_API_KEY
+Le système repose sur des services conteneurisés communicant de manière asynchrone :
 
-# 3. Démarrer l'environnement complet
-docker compose -f infra/docker-compose.yml up -d
+* **Frontend** : Application React (Vite, TailwindCSS, Recharts) offrant un tableau de bord de suivi de portefeuille, un assistant interactif et un module de visualisations analytiques.
+* **Backend API** : Service FastAPI (Python 3.11) exposant les endpoints REST, gérant l'authentification JWT et l'orchestration des agents.
+* **Pipeline de données** :
+  * **Apache Kafka & Zookeeper** : Ingestion en streaming des flux de cotations et dépêches d'actualités.
+  * **Celery & Redis** : Planification des tâches périodiques de rebalancement et mise en cache temps réel des prix.
+  * **PostgreSQL** : Persistance transactionnelle (comptes utilisateurs, portefeuilles, historique des transactions et recommandations).
+  * **Neo4j** : Modélisation des relations inter-entreprises, dépendances de chaînes d'approvisionnement et données ESG.
+  * **ChromaDB** : Base vectorielle pour l'indexation sémantique et la recherche documentaire (RAG).
 
-# 4. Initialiser la base de données
-cd backend
-pip install -r requirements.txt
-alembic upgrade head
+---
 
-# 5. Accéder à l'application
-# Frontend  : http://localhost:5173
-# API docs  : http://localhost:8000/docs
-# Neo4j     : http://localhost:7474
-# MLflow    : http://localhost:5000
-```
-
-## Structure du projet
+## 3. Structure du projet
 
 ```
-robo-advisor/
-├── backend/          # API FastAPI + Agents IA
-├── frontend/         # Interface React.js
-├── ml/               # Notebooks et expérimentations
-├── infra/            # Docker Compose + Kafka config
-├── docs/             # Documentation technique
-└── .github/          # CI/CD GitHub Actions
+├── backend/
+│   ├── app/
+│   │   ├── agents/          # Définition et orchestration des agents (LangGraph)
+│   │   ├── api/             # Routes FastAPI (auth, portfolio, chat, analytics)
+│   │   ├── core/            # Configuration et sécurité JWT
+│   │   ├── db/              # Connecteurs Postgres, Redis, Neo4j, Chroma
+│   │   ├── ingestion/       # Consommateurs Kafka et flux de prix
+│   │   ├── models/          # Modèles SQLAlchemy (User, Portfolio, Holding)
+│   │   └── services/        # Moteurs Markowitz, FinBERT, SHAP et génération PDF
+│   ├── tasks/               # Tâches asynchrones Celery
+│   ├── Dockerfile
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── components/      # Composants structurels et navigation
+│   │   ├── contexts/        # Contexte d'authentification React
+│   │   └── pages/           # Dashboard, Analytics, Profil de risque, Login
+│   ├── Dockerfile
+│   └── package.json
+├── infra/                   # Configuration Kafka et scripts d'initialisation
+├── portefeuille/            # Données de test (fichiers CSV de démonstration)
+└── docker-compose.yml       # Déploiement multi-conteneurs
 ```
 
-## Stack technique
+---
 
-| Couche | Technologies |
-|--------|-------------|
-| Frontend | React.js, TailwindCSS, Recharts |
-| Backend | FastAPI (Python 3.11), LangGraph, Celery |
-| Bases de données | PostgreSQL, Redis, Neo4j, ChromaDB |
-| IA | FinBERT, Mistral 7B (Groq), SHAP, PyPortfolioOpt |
-| Ingestion | Apache Kafka, yfinance, NewsAPI |
-| Infra | Docker Compose, GitHub Actions |
+## 4. Installation et démarrage
 
-## Documentation
+### Prérequis
+* Docker et Docker Compose
+* Git
 
-- [Guide API](docs/API.md)
-- [Architecture technique](docs/ARCHITECTURE.md)
-- [Guide de déploiement](docs/DEPLOYMENT.md)
+### Déploiement local
 
-## Compte de démo
+1. **Cloner le projet**
+   ```bash
+   git clone https://github.com/houssamat2005/Multi-Agent-Financial-Robo-Advisor-.git
+   cd Multi-Agent-Financial-Robo-Advisor-
+   ```
 
-```
-Email    : demo@roboadvisor.ai
-Password : Demo1234!
-```
+2. **Configuration de l'environnement**
+   Copiez le fichier de variables d'environnement modèle :
+   ```bash
+   cp .env.example backend/.env
+   ```
+   Renseignez votre clé d'API de modèle de langage (`GROQ_API_KEY`) dans `backend/.env`.
 
-## Métriques de performance (backtesting 2020–2024)
+3. **Lancement des conteneurs**
+   ```bash
+   docker-compose up -d --build
+   ```
 
-| Métrique | Valeur |
-|---------|--------|
-| Sharpe Ratio | > 1.0 |
-| Max Drawdown | < 25% |
-| Latence recommandation | < 8s |
+4. **Accès aux services**
+   * Interface utilisateur : [http://localhost:3000](http://localhost:3000)
+   * Documentation OpenAPI (Swagger) : [http://localhost:8000/docs](http://localhost:8000/docs)
+   * Console Neo4j : [http://localhost:7474](http://localhost:7474)
 
-## Licence
+---
 
-Projet académique — PFA 2026
+## 5. Fonctionnalités principales
+
+* **Importation de portefeuille** : Support du format CSV (`ticker`, `quantite`, `prix_achat_moyen`). Un fichier d'exemple est disponible dans `portefeuille/portefeuille_exemple.csv`.
+* **Tableau de bord dynamique** : Calcul automatique de la valeur liquidative, plus/moins-values latentes et répartition d'actifs.
+* **Assistant conversationnel spécialisé** : Dialogue en langage naturel contextualisé par les actifs détenus et les données de marché en direct.
+* **Rapports et visualisations** : Page dédiée regroupant frontière efficiente de Markowitz, courbes de drawdown, matrices de corrélation et explicabilité des décisions.
