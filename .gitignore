@@ -1,0 +1,63 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.so
+*.dylib
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# === Secrets ===
+.env
+*.env.local
+*.env.production
+
+# === Node / Frontend ===
+node_modules/
+.npm
+frontend/dist/
+frontend/build/
+frontend/.vite/
+
+# === Docker & Logs ===
+*.log
+*_logs.txt
+backend_logs.txt
+
+# === Bases de données locales ===
+pgdata/
+*.db
+*.sqlite3
+
+# === ML / Notebooks ===
+ml/experiments/mlruns/
+*.ipynb_checkpoints/
+.ipynb_checkpoints/
+
+# === OS ===
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# === IDE ===
+.vscode/
+.idea/
+*.iml
+
+# === Alembic ===
+alembic/versions/*.pyc

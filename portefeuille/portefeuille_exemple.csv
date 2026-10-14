@@ -1,0 +1,6 @@
+ticker,nom_actif,quantite,prix_achat_moyen,score_esg_indicatif
+AAPL,Apple Inc.,15,175.50,78
+MSFT,Microsoft Corp.,8,395.20,85
+NVDA,NVIDIA Corp.,12,450.10,65
+TSLA,Tesla Inc.,6,185.00,62
+CASH,Espèces,2500,1.00,100
